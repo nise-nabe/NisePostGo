@@ -55,11 +55,10 @@ func init() {
                 session.SetMode(mgo.Monotonic, true)
                 c := session.DB("test").C("goblog")
                 result := []Goblog{}
-                err = c.Find(nil).All(&result)
+                err = c.Find(nil).Limit(1000).All(&result)
                 if err != nil {
                         log.Println("Goblog: ", err)
                 }
-                log.Println("Goblog: ", result)
                 t := LoadTemplate(w, "mongo.html")
                 t.Execute(w, result)
         }})
