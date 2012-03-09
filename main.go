@@ -19,14 +19,19 @@ func (h *GoblogHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func init() {
         http.Handle("/", &GoblogHandler{func(w http.ResponseWriter, r *http.Request) {
-                t := LoadTemplate(w, "index.html")
+                if r.URL.Path != "/" {
+                        t := LoadTemplate(w, "web"+r.URL.Path)
+                        t.Execute(w, nil)
+                        return
+                }
+                t := LoadTemplate(w, "template/index.html")
                 t.Execute(w, nil)
         }})
         http.Handle("/edit", &GoblogHandler{func(w http.ResponseWriter, r *http.Request) {
                 log.Println(r.Method)
                 switch r.Method {
                 case "GET":
-                        t := LoadTemplate(w, "edit.html")
+                        t := LoadTemplate(w, "template/edit.html")
                         t.Execute(w, nil)
                 case "POST":
                         session, err := mgo.Dial("localhost")
@@ -55,7 +60,7 @@ func init() {
                 session.SetMode(mgo.Monotonic, true)
                 c := session.DB("test").C("goblog")
                 result := []Goblog{}
-                err = c.Find(nil).All(&result)
+                err = c.Find(nil).Limit(1000).All(&result)
                 if err != nil {
                         log.Println("Goblog: ", err)
                 }
