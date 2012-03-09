@@ -1,5 +1,6 @@
 <html>
   <head>
+    <title>NiseBlog</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
@@ -12,18 +13,11 @@
         </div>
         <div class="span5 well">
           <h1>Home</h1>
-          <form action="/edit" method="POST">
-            <div class="row">
-              <div class="span5">
-                <textarea name="content" class="span5"></textarea>
-              </div>
+          <div class="row">
+            <div class="span5">
+              <input type="text" name="command" class="span5" />
             </div>
-            <div class="row">
-              <div class="span2 offset3">
-                <input type="submit" class="span2 btn"/>
-              </div>
-            </div>
-          </form>
+          </div>
           {{range .}}
           <div class="row">
             <div class="span12">
