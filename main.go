@@ -31,7 +31,7 @@ func init() {
                 case "POST":
                         session, err := mgo.Dial("localhost")
                         if err != nil {
-                                log.Fatal("Goblog: ", err)
+                                log.Panicln("Goblog: ", err)
                         }
                         defer session.Close()
                         content := r.FormValue("content")
@@ -39,7 +39,7 @@ func init() {
                         c := session.DB("test").C("goblog")
                         err = c.Insert(&Goblog{content})
                         if err != nil {
-                                log.Fatal("Goblog: ", err)
+                                log.Panicln("Goblog: ", err)
                         }
                         handler := http.RedirectHandler("/edit", 200)
                         r.Method = "GET"
@@ -49,17 +49,17 @@ func init() {
         http.Handle("/mongo", &GoblogHandler{func(w http.ResponseWriter, r *http.Request) {
                 session, err := mgo.Dial("localhost")
                 if err != nil {
-                        log.Fatal("Goblog: ", err)
+                        log.Panicln("Goblog: ", err)
                 }
                 defer session.Close()
                 session.SetMode(mgo.Monotonic, true)
                 c := session.DB("test").C("goblog")
                 result := []Goblog{}
-                err = c.Find(nil).Limit(1000).All(&result)
+                err = c.Find(nil).All(&result)
                 if err != nil {
                         log.Println("Goblog: ", err)
                 }
-                t := LoadTemplate(w, "mongo.html")
+                t := LoadTemplate(w, "template/mongo.html")
                 t.Execute(w, result)
         }})
 }
@@ -78,7 +78,7 @@ func main() {
 func LoadTemplate(w http.ResponseWriter, filename string) *template.Template {
         t, parseErr := template.ParseFiles(filename)
         if parseErr != nil {
-                log.Fatal("Goblog: ", parseErr)
+                log.Panicln("Goblog: ", parseErr)
         }
         return t
 }
