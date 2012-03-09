@@ -5,6 +5,37 @@
     <script src="js/bootstrap.min.js"></script>
   </head>
   <body>
-    <h1>Home</h1>
+    <div class="container">
+      <div class="row">
+        <div class="span2 well">
+          <h1>Menu</h1>
+        </div>
+        <div class="span5 well">
+          <h1>Home</h1>
+          <form action="/edit" method="POST">
+            <div class="row">
+              <div class="span5">
+                <textarea name="content" class="span5"></textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="span2 offset3">
+                <input type="submit" class="span2 btn"/>
+              </div>
+            </div>
+          </form>
+          {{range .}}
+          <div class="row">
+            <div class="span12">
+              {{.Content}}
+            </div>
+          </div>
+          {{end}}
+        </div>
+        <div class="span3 well">
+          <h1>Side</h1>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
