@@ -46,7 +46,7 @@ func init() {
                         if err != nil {
                                 log.Panicln("Goblog: ", err)
                         }
-                        handler := http.RedirectHandler("/edit", 200)
+                        handler := http.RedirectHandler("/", 200)
                         r.Method = "GET"
                         handler.ServeHTTP(w, r)
                 }
