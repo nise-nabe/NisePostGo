@@ -11,21 +11,17 @@
       <div class="row">
         <div class="span2 well">
           <h1>Menu</h1>
+          <div id="debug"></div>
         </div>
         <div class="span5 well">
           <h1>Home</h1>
-          <div class="row">
+          <div id="command-row" class="row">
             <div class="span5">
-              <input type="text" name="command" class="span5" />
+              <input type="text" id="command-input" name="command" class="span5" />
             </div>
           </div>
-          {{range .}}
-          <div class="row">
-            <div class="span12">
-              {{.Content}}
-            </div>
+          <div id="source-row" class="row">
           </div>
-          {{end}}
         </div>
         <div class="span3 well">
           <h1>Side</h1>
