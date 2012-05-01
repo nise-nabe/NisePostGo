@@ -58,7 +58,7 @@ func initRouting() {
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session")
 		if session.Values["role"] != nil && session.Values["role"] != "Anonymous" {
-			http.Redirect(w, r, "/", 302)
+			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
 		session, _ = store.New(r, "session")
@@ -86,7 +86,7 @@ func initRouting() {
 			session.Values["role"] = "User"
 			session.Save(r, w)
 			log.Println("User Authorized")
-			http.Redirect(w, r, "/", 302)
+			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
 		session.AddFlash("Login was not succeeded!")
@@ -103,7 +103,7 @@ func initRouting() {
 			content := r.FormValue("content")
 			c := db.C("test")
 			c.Insert(&NisePostGo{content})
-			http.Redirect(w, r, "/", 302)
+			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
 	}})
