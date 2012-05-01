@@ -7,10 +7,6 @@ import (
 	"net/http"
 )
 
-type NisePostGo struct {
-	Content string
-}
-
 type NisePostGoHandler struct {
 	handler func(http.ResponseWriter, *http.Request, *sessions.Session)
 }
