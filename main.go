@@ -57,15 +57,17 @@ func initRouting() {
 	}})
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session")
-		if session.Values["role"] != nil && session.Values["role"] != "Anonymous" {
+                log.Println(session.Values)
+                if session.Values["role"] == nil {
+		    session, _ = store.New(r, "session")
+		    session.Values["role"] = "Anonymous"
+                } else if session.Values["role"] != "Anonymous" {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		session, _ = store.New(r, "session")
-		session.Values["role"] = "Anonymous"
 		session.Save(r, w)
 		t := LoadTemplate(w, "template/login.html")
-		t.Execute(w, nil)
+		t.Execute(w, session)
 	}})
 	http.Handle("/login/check", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session")
@@ -89,7 +91,9 @@ func initRouting() {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		session.AddFlash("Login was not succeeded!")
+		session.Values["_flash"] = make([]interface{}, 0)
+		session.AddFlash("login was not succeeded!")
+		session.Save(r, w)
 		log.Println("User Unauthorized")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
