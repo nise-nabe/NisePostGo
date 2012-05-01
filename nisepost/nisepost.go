@@ -30,13 +30,13 @@ var (
 func initRouting() {
 	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if r.URL.Path != "/" {
-			t := LoadTemplate(w, "web"+r.URL.Path)
+			t := LoadTemplate("web"+r.URL.Path)
 			t.Execute(w, nil)
 			return
 		}
 		log.Println(s.Values["name"])
 		log.Println(s.Values["role"])
-		t := LoadTemplate(w, "template/index.html")
+		t := LoadTemplate("index.html")
 		t.Execute(w, nil)
 	}})
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
@@ -48,7 +48,7 @@ func initRouting() {
 			return
 		}
 		s.Save(r, w)
-		t := LoadTemplate(w, "template/login.html")
+		t := LoadTemplate("login.html")
 		t.Execute(w, s)
 	}})
 	http.Handle("/login/check", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
@@ -76,8 +76,8 @@ func initRouting() {
 	}})
 }
 
-func LoadTemplate(w http.ResponseWriter, filename string) *template.Template {
-	t, parseErr := template.ParseFiles(filename)
+func LoadTemplate(filename string) *template.Template {
+	t, parseErr := template.ParseFiles("template/" + filename)
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
