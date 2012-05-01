@@ -2,23 +2,13 @@ package nisepost
 
 import (
 	"code.google.com/p/gorilla/sessions"
-	"crypto/sha512"
-	"hash"
 	"html/template"
-	"launchpad.net/mgo"
-	"launchpad.net/mgo/bson"
 	"log"
 	"net/http"
-	"os"
 )
 
 type NisePostGo struct {
 	Content string
-}
-
-type NisePostGoUser struct {
-	Username string
-	Password string
 }
 
 type NisePostGoHandler struct {
@@ -38,18 +28,7 @@ func Init() {
 
 var (
 	store *sessions.CookieStore
-	db    *mgo.Database
 )
-
-func initDB() {
-	session, err := mgo.Dial("localhost")
-	if err != nil {
-		log.Panicln("NisePostGo: ", err)
-		os.Exit(1)
-	}
-	session.SetMode(mgo.Monotonic, true)
-	db = session.DB("NisePostGo")
-}
 
 func initRouting() {
 	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
@@ -110,12 +89,4 @@ func LoadTemplate(w http.ResponseWriter, filename string) *template.Template {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
 	return t
-}
-
-func Authenticate(username, password string) bool {
-	var h hash.Hash = sha512.New()
-	h.Write([]byte(password))
-	user := NisePostGoUser{}
-	return db.C("User").Find(bson.M{"Username": username, "Password": h.Sum(nil)}).One(&user) == nil
-
 }
