@@ -12,12 +12,13 @@ type NisePostGo struct {
 }
 
 type NisePostGoHandler struct {
-	handler func(http.ResponseWriter, *http.Request)
+	handler func(http.ResponseWriter, *http.Request, *sessions.Session)
 }
 
 func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL.Path)
-	h.handler(w, r)
+	s, _ := store.Get(r, "session")
+	h.handler(w, r, s)
 }
 
 func Init() {
@@ -31,53 +32,49 @@ var (
 )
 
 func initRouting() {
-	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if r.URL.Path != "/" {
 			t := LoadTemplate(w, "web"+r.URL.Path)
 			t.Execute(w, nil)
 			return
 		}
-		session, _ := store.Get(r, "session")
-		log.Println(session.Values["name"])
-		log.Println(session.Values["role"])
+		log.Println(s.Values["name"])
+		log.Println(s.Values["role"])
 		t := LoadTemplate(w, "template/index.html")
 		t.Execute(w, nil)
 	}})
-	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, "session")
-		log.Println(session.Values)
-		if session.Values["role"] == nil {
-			session, _ = store.New(r, "session")
-			session.Values["role"] = "Anonymous"
-		} else if session.Values["role"] != "Anonymous" {
+	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
+		if s.Values["role"] == nil {
+			s, _ = store.New(r, "session")
+			s.Values["role"] = "Anonymous"
+		} else if s.Values["role"] != "Anonymous" {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		session.Save(r, w)
+		s.Save(r, w)
 		t := LoadTemplate(w, "template/login.html")
-		t.Execute(w, session)
+		t.Execute(w, s)
 	}})
-	http.Handle("/login/check", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, "session")
+	http.Handle("/login/check", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
 		case "POST":
-			if session.Values["role"] != "Anonymous" {
+			if s.Values["role"] != "Anonymous" {
 				break
 			}
 			username, password := r.FormValue("username"), r.FormValue("password")
 			if !Authenticate(username, password) {
 				break
 			}
-			session.Values["name"] = username
-			session.Values["role"] = "User"
-			session.Save(r, w)
+			s.Values["name"] = username
+			s.Values["role"] = "User"
+			s.Save(r, w)
 			log.Println("User Authorized")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		session.Values["_flash"] = make([]interface{}, 0)
-		session.AddFlash("login was not succeeded!")
-		session.Save(r, w)
+		s.Values["_flash"] = make([]interface{}, 0)
+		s.AddFlash("login was not succeeded!")
+		s.Save(r, w)
 		log.Println("User Unauthorized")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
