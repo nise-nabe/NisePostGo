@@ -1,12 +1,15 @@
 package main
 
 import (
+	"code.google.com/p/gorilla/sessions"
+	"crypto/sha512"
+	"hash"
 	"html/template"
 	"launchpad.net/mgo"
-	//        "launchpad.net/mgo/bson"
-	"code.google.com/p/gorilla/sessions"
+	"launchpad.net/mgo/bson"
 	"log"
 	"net/http"
+	"os"
 )
 
 type NisePostGoHandler struct {
@@ -20,12 +23,24 @@ func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func init() {
 	store = sessions.NewCookieStore([]byte("NiseGoPostSecret"))
+	initDB()
 	initRouting()
 }
 
 var (
 	store *sessions.CookieStore
+	db    *mgo.Database
 )
+
+func initDB() {
+	session, err := mgo.Dial("localhost")
+	if err != nil {
+		log.Panicln("NisePostGo: ", err)
+		os.Exit(1)
+	}
+	session.SetMode(mgo.Monotonic, true)
+	db = session.DB("NisePostGo")
+}
 
 func initRouting() {
 	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
@@ -36,23 +51,47 @@ func initRouting() {
 		}
 		session, _ := store.Get(r, "session")
 		log.Println(session.Values["name"])
+		log.Println(session.Values["role"])
 		t := LoadTemplate(w, "template/index.html")
 		t.Execute(w, nil)
 	}})
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			t := LoadTemplate(w, "template/login.html")
-			t.Execute(w, nil)
-		case "POST":
-			username, password := r.FormValue("username"), r.FormValue("password")
-			session, _ := store.New(r, "session")
-			session.Values["name"] = username
-			session.Save(r, w)
-			handler := http.RedirectHandler("/", 200)
-			r.Method = "GET"
-			handler.ServeHTTP(w, r)
+		session, _ := store.Get(r, "session")
+		if session.Values["role"] != nil && session.Values["role"] != "Anonymous" {
+			http.Redirect(w, r, "/", 302)
+			return
 		}
+		session, _ = store.New(r, "session")
+		session.Values["role"] = "Anonymous"
+		session.Save(r, w)
+		t := LoadTemplate(w, "template/login.html")
+		t.Execute(w, nil)
+	}})
+	http.Handle("/login/check", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "session")
+		switch r.Method {
+		case "POST":
+			if session.Values["role"] != "Anonymous" {
+				break
+			}
+			username, password := r.FormValue("username"), r.FormValue("password")
+			var h hash.Hash = sha512.New()
+			h.Write([]byte(password))
+			user := NisePostGoUser{}
+			err := db.C("User").Find(bson.M{"Username": username, "Password": h.Sum(nil)}).One(&user)
+			if err != nil {
+				break
+			}
+			session.Values["name"] = username
+			session.Values["role"] = "User"
+			session.Save(r, w)
+			log.Println("User Authorized")
+			http.Redirect(w, r, "/", 302)
+			return
+		}
+		session.AddFlash("Login was not succeeded!")
+		log.Println("User Unauthorized")
+		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
 	http.Handle("/edit", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method)
@@ -61,33 +100,17 @@ func initRouting() {
 			t := LoadTemplate(w, "template/edit.html")
 			t.Execute(w, nil)
 		case "POST":
-			session, err := mgo.Dial("localhost")
-			if err != nil {
-				log.Panicln("NisePostGo: ", err)
-			}
-			defer session.Close()
 			content := r.FormValue("content")
-			session.SetMode(mgo.Monotonic, true)
-			c := session.DB("test").C("goblog")
-			err = c.Insert(&NisePostGo{content})
-			if err != nil {
-				log.Panicln("NisePostGo: ", err)
-			}
-			handler := http.RedirectHandler("/", 200)
-			r.Method = "GET"
-			handler.ServeHTTP(w, r)
+			c := db.C("test")
+			c.Insert(&NisePostGo{content})
+			http.Redirect(w, r, "/", 302)
+			return
 		}
 	}})
 	http.Handle("/mongo", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
-		session, err := mgo.Dial("localhost")
-		if err != nil {
-			log.Panicln("NisePostGo: ", err)
-		}
-		defer session.Close()
-		session.SetMode(mgo.Monotonic, true)
-		c := session.DB("test").C("goblog")
 		result := []NisePostGo{}
-		err = c.Find(nil).Limit(1000).All(&result)
+		c := db.C("test")
+		err := c.Find(nil).Limit(1000).All(&result)
 		if err != nil {
 			log.Println("NisePostGo: ", err)
 		}
@@ -113,4 +136,9 @@ func LoadTemplate(w http.ResponseWriter, filename string) *template.Template {
 
 type NisePostGo struct {
 	Content string
+}
+
+type NisePostGoUser struct {
+	Username string
+	Password string
 }
