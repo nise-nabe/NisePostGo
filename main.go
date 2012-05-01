@@ -97,30 +97,6 @@ func initRouting() {
 		log.Println("User Unauthorized")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
-	http.Handle("/edit", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.Method)
-		switch r.Method {
-		case "GET":
-			t := LoadTemplate(w, "template/edit.html")
-			t.Execute(w, nil)
-		case "POST":
-			content := r.FormValue("content")
-			c := db.C("test")
-			c.Insert(&NisePostGo{content})
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
-	}})
-	http.Handle("/mongo", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request) {
-		result := []NisePostGo{}
-		c := db.C("test")
-		err := c.Find(nil).Limit(1000).All(&result)
-		if err != nil {
-			log.Println("NisePostGo: ", err)
-		}
-		t := LoadTemplate(w, "template/mongo.html")
-		t.Execute(w, result)
-	}})
 }
 
 func main() {
