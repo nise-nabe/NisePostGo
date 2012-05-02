@@ -51,7 +51,7 @@ func initRouting() {
 		t := LoadTemplate("login.html")
 		t.Execute(w, s)
 	}})
-	http.Handle("/login/check", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
+	http.Handle("/login/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
 		case "POST":
 			if s.Values["role"] != "Anonymous" {
