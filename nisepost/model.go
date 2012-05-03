@@ -7,6 +7,8 @@ import (
 	"launchpad.net/mgo/bson"
 	"log"
 	"os"
+        "io"
+        "fmt"
 )
 
 var (
@@ -28,13 +30,21 @@ type NisePostGoUser struct {
 	Password string
 }
 
-func Authenticate(username, password string) bool {
-	var h hash.Hash = sha512.New()
-	h.Write([]byte(password))
-	user := NisePostGoUser{}
-	return db.C("User").Find(bson.M{"Username": username, "Password": h.Sum(nil)}).One(&user) == nil
+func NewUser(username, password string) *NisePostGoUser {
+  return &NisePostGoUser{username, Encrypto(password)}
 }
 
-func (user NisePostGoUser) Save() {
+func Authenticate(username, password string) bool {
+	user := NisePostGoUser{}
+	return db.C("User").Find(bson.M{"username": username, "password": Encrypto(password)}).One(&user) == nil
+}
+
+func Encrypto(s string) string {
+	var h hash.Hash = sha512.New()
+        io.WriteString(h, s)
+        return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (user *NisePostGoUser) Save() {
   db.C("User").Insert(&user)
 }

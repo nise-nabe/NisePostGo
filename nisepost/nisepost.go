@@ -74,6 +74,14 @@ func initRouting() {
 		log.Println("User Unauthorized")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
+	http.Handle("/logout", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
+		s, _ = store.New(r, "session")
+		s.Values["role"] = "Anonymous"
+		s.Values["_flash"] = make([]interface{}, 0)
+		s.AddFlash("logout was succeeded!")
+		s.Save(r, w)
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}})
 	http.Handle("/register", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
 		case "GET":
@@ -105,8 +113,7 @@ func initRouting() {
 				http.Redirect(w, r, "/register", http.StatusFound)
 			}
 
-			var user NisePostGoUser = NisePostGoUser{username, password}
-			user.Save()
+			NewUser(username, password).Save()
 			s.AddFlash("Register was succeeded. ")
 			s.Values["name"] = username
 			s.Values["role"] = "User"
