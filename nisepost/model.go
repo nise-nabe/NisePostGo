@@ -34,3 +34,7 @@ func Authenticate(username, password string) bool {
 	user := NisePostGoUser{}
 	return db.C("User").Find(bson.M{"Username": username, "Password": h.Sum(nil)}).One(&user) == nil
 }
+
+func (user NisePostGoUser) Save() {
+  db.C("User").Insert(&user)
+}

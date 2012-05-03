@@ -30,7 +30,7 @@ var (
 func initRouting() {
 	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if r.URL.Path != "/" {
-			t := LoadTemplate("web"+r.URL.Path)
+			t := LoadWebContent(r.URL.Path)
 			t.Execute(w, nil)
 			return
 		}
@@ -74,10 +74,58 @@ func initRouting() {
 		log.Println("User Unauthorized")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
+	http.Handle("/register", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
+		switch r.Method {
+		case "GET":
+			if s.Values["role"] != "Anonymous" {
+				break
+			}
+			t := LoadTemplate("register.html")
+			t.Execute(w, s)
+		}
+	}})
+	http.Handle("/register/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
+		if s.Values["role"] != "Anonymous" {
+			return
+		}
+		switch r.Method {
+		case "POST":
+			username := r.FormValue("username")
+			password, password2 := r.FormValue("password"), r.FormValue("password2")
+			if password == "" {
+				s.AddFlash("password was empty")
+				http.Redirect(w, r, "/register", http.StatusFound)
+			}
+			if password2 == "" {
+				s.AddFlash("confirmed password was empty")
+				http.Redirect(w, r, "/register", http.StatusFound)
+			}
+			if password != password2 {
+				s.AddFlash("password doesn't correspond")
+				http.Redirect(w, r, "/register", http.StatusFound)
+			}
+
+			var user NisePostGoUser = NisePostGoUser{username, password}
+			user.Save()
+			s.AddFlash("Register was succeeded. ")
+			s.Values["name"] = username
+			s.Values["role"] = "User"
+			s.Save(r, w)
+			http.Redirect(w, r, "/", http.StatusFound)
+		}
+	}})
 }
 
 func LoadTemplate(filename string) *template.Template {
 	t, parseErr := template.ParseFiles("template/" + filename)
+	if parseErr != nil {
+		log.Panicln("NisePostGo: ", parseErr)
+	}
+	return t
+}
+
+func LoadWebContent(filename string) *template.Template {
+	t, parseErr := template.ParseFiles("web" + filename)
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
