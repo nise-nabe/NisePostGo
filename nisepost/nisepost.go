@@ -133,7 +133,7 @@ func initTemplate() *template.Template {
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
-        return t
+	return t
 }
 
 func loadWebContent(filename string) *template.Template {

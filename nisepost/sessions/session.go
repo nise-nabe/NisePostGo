@@ -20,6 +20,6 @@ func Get(r *http.Request) *Session {
 
 func New(r *http.Request) *Session {
 	s, _ := store.New(r, "session")
-        s.Values["hasError"] = false
+	s.Values["hasError"] = false
 	return &Session{s}
 }
