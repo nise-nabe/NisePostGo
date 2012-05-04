@@ -20,11 +20,13 @@ func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func Init() {
 	store = sessions.NewCookieStore([]byte("NiseGoPostSecret"))
 	initDB()
+        LoadTemplate()
 	initRouting()
 }
 
 var (
 	store *sessions.CookieStore
+        tmpl *template.Template
 )
 
 func initRouting() {
@@ -36,8 +38,7 @@ func initRouting() {
 		}
 		log.Println(s.Values["name"])
 		log.Println(s.Values["role"])
-		t := LoadTemplate("index.html")
-		t.Execute(w, nil)
+		tmpl.ExecuteTemplate(w, "index", nil)
 	}})
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if s.Values["role"] == nil {
@@ -48,8 +49,7 @@ func initRouting() {
 			return
 		}
 		s.Save(r, w)
-		t := LoadTemplate("login.html")
-		t.Execute(w, s)
+		tmpl.ExecuteTemplate(w, "login", s)
 	}})
 	http.Handle("/login/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
@@ -88,8 +88,7 @@ func initRouting() {
 			if s.Values["role"] != "Anonymous" {
 				break
 			}
-			t := LoadTemplate("register.html")
-			t.Execute(w, s)
+			tmpl.ExecuteTemplate(w, "register", s)
 		}
 	}})
 	http.Handle("/register/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
@@ -123,12 +122,12 @@ func initRouting() {
 	}})
 }
 
-func LoadTemplate(filename string) *template.Template {
-	t, parseErr := template.ParseFiles("template/" + filename)
+func LoadTemplate() {
+	t, parseErr := template.ParseGlob("template/*.tmpl")
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
-	return t
+        tmpl = t
 }
 
 func LoadWebContent(filename string) *template.Template {

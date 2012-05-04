@@ -1,0 +1,7 @@
+{{define "error"}}
+<div class="alert alert-error">
+  {{range .Flashes}}
+    {{println .}}
+  {{end}}
+</div>
+{{end}}

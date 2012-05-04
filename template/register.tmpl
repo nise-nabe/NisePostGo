@@ -1,0 +1,37 @@
+{{defnine "register"}}
+<html>
+  <head>
+    <link href="http://nise-nabe.github.com/web/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/goblog.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span10 well">
+          <form action="/register/post" method="POST">
+            <div class="control-group">
+              <label class="control-label">Name</label>
+              <div class="controls">
+                <input type="text" class="input-xlarge" id="username" name="username" placeholder="Enter your username" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Password</label>
+              <div class="controls">
+                <input type="password" class="input-xlarge" id="password" name="password" placeholder="Enter your password" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Password (Confirm)</label>
+              <div class="controls">
+                <input type="password" class="input-xlarge" id="password2" name="password2" placeholder="Enter your password (confirm)" />
+              </div>
+            </div>
+            <button class="btn primary" type="submit">Register</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+{{end}}
