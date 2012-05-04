@@ -25,22 +25,22 @@ func initDB() {
 	db = session.DB("NisePostGo")
 }
 
-type NisePostGoUser struct {
+type User struct {
 	Username string
 	Password string
 }
 
-func NewUser(username, password string) *NisePostGoUser {
-	return &NisePostGoUser{username, Encrypto(password)}
+func NewUser(username, password string) *User {
+	return &User{username, Encrypto(password)}
 }
 
 func IsExistUser(username string) bool {
-	user := NisePostGoUser{}
+	user := User{}
 	return db.C("user").Find(bson.M{"username": username}).One(&user) == nil
 }
 
 func Authenticate(username, password string) bool {
-	user := NisePostGoUser{}
+	user := User{}
 	return db.C("User").Find(bson.M{"username": username, "password": Encrypto(password)}).One(&user) == nil
 }
 
@@ -50,6 +50,6 @@ func Encrypto(s string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (user *NisePostGoUser) Save() {
+func (user *User) Save() {
 	db.C("User").Insert(&user)
 }
