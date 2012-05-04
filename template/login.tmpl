@@ -11,6 +11,7 @@
         <div class="row">
           <div class="login-form">
             <h2>Login</h2>
+            {{if .HasError}}{{template "error" .Errors}}{{end}}
             <form action="/login/post" method="POST">
               <fieldset>
                 <div class="clearfix">

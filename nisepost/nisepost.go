@@ -11,6 +11,11 @@ type NisePostGoHandler struct {
 	handler func(http.ResponseWriter, *http.Request, *sessions.Session)
 }
 
+type NisePostGoPageBean struct {
+	HasError bool
+	Errors   []interface{}
+}
+
 func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL.Path)
 	h.handler(w, r, sessions.Get(r))
@@ -44,8 +49,9 @@ func initRouting() {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
+		log.Println(s.Values["hasError"])
 		s.Save(r, w)
-		tmpl.ExecuteTemplate(w, "login", s)
+		tmpl.ExecuteTemplate(w, "login", NisePostGoPageBean{s.Values["hasError"].(bool), s.Flashes()})
 	}})
 	http.Handle("/login/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
@@ -75,6 +81,7 @@ func initRouting() {
 		s.Values["role"] = "Anonymous"
 		s.Values["_flash"] = make([]interface{}, 0)
 		s.AddFlash("logout was succeeded!")
+		s.Values["hasError"] = true
 		s.Save(r, w)
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
