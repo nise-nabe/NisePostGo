@@ -18,12 +18,11 @@ func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func Init() {
 	initDB()
-	initTemplate()
 	initRouting()
 }
 
 var (
-	tmpl *template.Template
+	tmpl = initTemplate()
 )
 
 func initRouting() {
@@ -122,12 +121,12 @@ func initRouting() {
 	}})
 }
 
-func initTemplate() {
+func initTemplate() *template.Template {
 	t, parseErr := template.ParseGlob("template/*.tmpl")
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
-	tmpl = t
+        return t
 }
 
 func loadWebContent(filename string) *template.Template {
