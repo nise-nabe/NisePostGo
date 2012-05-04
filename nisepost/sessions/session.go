@@ -23,3 +23,7 @@ func New(r *http.Request) *Session {
 	s.Values["hasError"] = false
 	return &Session{s}
 }
+
+func (s Session) ClearFlashes() {
+	s.Values["_flash"] = make([]interface{}, 0)
+}

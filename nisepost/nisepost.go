@@ -70,7 +70,7 @@ func initRouting() {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		s.Values["_flash"] = make([]interface{}, 0)
+		s.ClearFlashes()
 		s.AddFlash("login was not succeeded!")
 		s.Save(r, w)
 		log.Println("User Unauthorized")
@@ -79,7 +79,7 @@ func initRouting() {
 	http.Handle("/logout", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		s = sessions.New(r)
 		s.Values["role"] = "Anonymous"
-		s.Values["_flash"] = make([]interface{}, 0)
+		s.ClearFlashes()
 		s.AddFlash("logout was succeeded!")
 		s.Values["hasError"] = true
 		s.Save(r, w)
