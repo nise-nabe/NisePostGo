@@ -20,13 +20,13 @@ func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func Init() {
 	store = sessions.NewCookieStore([]byte("NiseGoPostSecret"))
 	initDB()
-        LoadTemplate()
+	LoadTemplate()
 	initRouting()
 }
 
 var (
 	store *sessions.CookieStore
-        tmpl *template.Template
+	tmpl  *template.Template
 )
 
 func initRouting() {
@@ -98,6 +98,10 @@ func initRouting() {
 		switch r.Method {
 		case "POST":
 			username := r.FormValue("username")
+			if IsExistUser(username) {
+				s.AddFlash("the username was exist")
+				http.Redirect(w, r, "/register", http.StatusFound)
+			}
 			password, password2 := r.FormValue("password"), r.FormValue("password2")
 			if password == "" {
 				s.AddFlash("password was empty")
@@ -111,7 +115,6 @@ func initRouting() {
 				s.AddFlash("password doesn't correspond")
 				http.Redirect(w, r, "/register", http.StatusFound)
 			}
-
 			NewUser(username, password).Save()
 			s.AddFlash("Register was succeeded. ")
 			s.Values["name"] = username
@@ -127,7 +130,7 @@ func LoadTemplate() {
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
 	}
-        tmpl = t
+	tmpl = t
 }
 
 func LoadWebContent(filename string) *template.Template {

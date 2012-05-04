@@ -2,13 +2,13 @@ package nisepost
 
 import (
 	"crypto/sha512"
+	"fmt"
 	"hash"
+	"io"
 	"launchpad.net/mgo"
 	"launchpad.net/mgo/bson"
 	"log"
 	"os"
-        "io"
-        "fmt"
 )
 
 var (
@@ -31,7 +31,12 @@ type NisePostGoUser struct {
 }
 
 func NewUser(username, password string) *NisePostGoUser {
-  return &NisePostGoUser{username, Encrypto(password)}
+	return &NisePostGoUser{username, Encrypto(password)}
+}
+
+func IsExistUser(username string) bool {
+	user := NisePostGoUser{}
+	return db.C("user").Find(bson.M{"username": username}).One(&user) == nil
 }
 
 func Authenticate(username, password string) bool {
@@ -41,10 +46,10 @@ func Authenticate(username, password string) bool {
 
 func Encrypto(s string) string {
 	var h hash.Hash = sha512.New()
-        io.WriteString(h, s)
-        return fmt.Sprintf("%x", h.Sum(nil))
+	io.WriteString(h, s)
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func (user *NisePostGoUser) Save() {
-  db.C("User").Insert(&user)
+	db.C("User").Insert(&user)
 }
