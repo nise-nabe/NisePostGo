@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+const(
+  _ = iota
+  Anonymous
+  User
+)
+
 var (
 	store = sessions.NewCookieStore([]byte("NiseGoPostSecret"))
 )

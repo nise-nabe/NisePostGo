@@ -44,8 +44,8 @@ func initRouting() {
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if s.Values["role"] == nil {
 			s = sessions.New(r)
-			s.Values["role"] = "Anonymous"
-		} else if s.Values["role"] != "Anonymous" {
+			s.Values["role"] = sessions.Anonymous
+		} else if s.Values["role"] != sessions.Anonymous {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
@@ -56,7 +56,7 @@ func initRouting() {
 	http.Handle("/login/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
 		case "POST":
-			if s.Values["role"] != "Anonymous" {
+			if s.Values["role"] != sessions.Anonymous {
 				break
 			}
 			username, password := r.FormValue("username"), r.FormValue("password")
@@ -78,7 +78,7 @@ func initRouting() {
 	}})
 	http.Handle("/logout", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		s = sessions.New(r)
-		s.Values["role"] = "Anonymous"
+		s.Values["role"] = sessions.Anonymous
 		s.ClearFlashes()
 		s.AddFlash("logout was succeeded!")
 		s.Values["hasError"] = true
@@ -88,14 +88,14 @@ func initRouting() {
 	http.Handle("/register", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		switch r.Method {
 		case "GET":
-			if s.Values["role"] != "Anonymous" {
+			if s.Values["role"] != sessions.Anonymous {
 				break
 			}
 			tmpl.ExecuteTemplate(w, "register", s)
 		}
 	}})
 	http.Handle("/register/post", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
-		if s.Values["role"] != "Anonymous" {
+		if s.Values["role"] != sessions.Anonymous {
 			return
 		}
 		switch r.Method {
