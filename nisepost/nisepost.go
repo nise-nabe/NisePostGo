@@ -29,7 +29,7 @@ var (
 func initRouting() {
 	http.Handle("/", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if r.URL.Path != "/" {
-			t := LoadWebContent(r.URL.Path)
+			t := loadWebContent(r.URL.Path)
 			t.Execute(w, nil)
 			return
 		}
