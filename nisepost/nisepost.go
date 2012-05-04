@@ -20,7 +20,7 @@ func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func Init() {
 	store = sessions.NewCookieStore([]byte("NiseGoPostSecret"))
 	initDB()
-	LoadTemplate()
+	initTemplate()
 	initRouting()
 }
 
@@ -125,7 +125,7 @@ func initRouting() {
 	}})
 }
 
-func LoadTemplate() {
+func initTemplate() {
 	t, parseErr := template.ParseGlob("template/*.tmpl")
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
@@ -133,7 +133,7 @@ func LoadTemplate() {
 	tmpl = t
 }
 
-func LoadWebContent(filename string) *template.Template {
+func loadWebContent(filename string) *template.Template {
 	t, parseErr := template.ParseFiles("web" + filename)
 	if parseErr != nil {
 		log.Panicln("NisePostGo: ", parseErr)
