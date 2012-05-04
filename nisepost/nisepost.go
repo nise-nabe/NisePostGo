@@ -1,7 +1,7 @@
 package nisepost
 
 import (
-	"code.google.com/p/gorilla/sessions"
+	"github.com/nise-nabe/NisePostGo/nisepost/sessions"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,20 +13,17 @@ type NisePostGoHandler struct {
 
 func (h *NisePostGoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL.Path)
-	s, _ := store.Get(r, "session")
-	h.handler(w, r, s)
+	h.handler(w, r, sessions.Get(r))
 }
 
 func Init() {
-	store = sessions.NewCookieStore([]byte("NiseGoPostSecret"))
 	initDB()
 	initTemplate()
 	initRouting()
 }
 
 var (
-	store *sessions.CookieStore
-	tmpl  *template.Template
+	tmpl *template.Template
 )
 
 func initRouting() {
@@ -42,7 +39,7 @@ func initRouting() {
 	}})
 	http.Handle("/login", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
 		if s.Values["role"] == nil {
-			s, _ = store.New(r, "session")
+			s = sessions.New(r)
 			s.Values["role"] = "Anonymous"
 		} else if s.Values["role"] != "Anonymous" {
 			http.Redirect(w, r, "/", http.StatusFound)
@@ -75,7 +72,7 @@ func initRouting() {
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}})
 	http.Handle("/logout", &NisePostGoHandler{func(w http.ResponseWriter, r *http.Request, s *sessions.Session) {
-		s, _ = store.New(r, "session")
+		s = sessions.New(r)
 		s.Values["role"] = "Anonymous"
 		s.Values["_flash"] = make([]interface{}, 0)
 		s.AddFlash("logout was succeeded!")
